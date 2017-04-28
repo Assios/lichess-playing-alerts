@@ -98,6 +98,7 @@ def main():
         if timestamp in get_previous_smses():
             print("Reached a message seen before at %s" % datetime.datetime.fromtimestamp(int(timestamp)).strftime(
                 '%d.%m.%Y %H:%M:%S'))
+            break
         else:
             add_sms(timestamp)
             print("FROM_NUMBER %s CONTENT %s" % (message["from_number"], message["content"]))
