@@ -24,10 +24,10 @@ def delete_number_from_database(number):
     con.commit()
 
 
-def add_sms(sms):
+def add_sms(time):
     con = sql.connect("./database.db")
     c = con.cursor()
-    c.execute("INSERT INTO smses (sms) VALUES (?)", (sms,))
+    c.execute("INSERT INTO smses (time) VALUES (?)", (time,))
     con.commit()
     con.close()
 
@@ -35,7 +35,23 @@ def add_sms(sms):
 def get_previous_smses():
     conn = sql.connect("./database.db")
     c = conn.cursor()
-    c.execute('SELECT * FROM smses')
+    c.execute('SELECT time FROM smses')
+    all_rows = c.fetchall()
+    c.close()
+    return [row[0] for row in all_rows]
+
+
+def add_player(player_name):
+    con = sql.connect("./database.db")
+    cur = con.cursor()
+    cur.execute("INSERT INTO players (player_name) VALUES (?)", (player_name,))
+    con.commit()
+
+
+def get_previous_players():
+    conn = sql.connect("./database.db")
+    c = conn.cursor()
+    c.execute('SELECT player_name FROM players')
     all_rows = c.fetchall()
     c.close()
     return [row[0] for row in all_rows]
@@ -59,6 +75,16 @@ def send_sms(message, recipient):
     print(r)
     return r
 
+def add_number_player_relation(phone_number, player):
+    if not phone_number in get_registered_numbers():
+        add_number_to_database(phone_number)
+    if not player in get_previous_players():
+        add_player(player)
+
+    conn = sql.connect('./database.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO numbers_players_relation (phone_number, player) VALUES (?, ?)', (phone_number, player))
+
 
 def view_inbox(starts_with="LICHESS", limit=10):
     """
@@ -77,19 +103,9 @@ def handle_new_sms(number, text):
     nums = get_registered_numbers()
     message = text[7:].lower().strip()
 
-    if message.startswith("start"):
-        if number in nums:
-            send_sms("You have already subscribed.", number)
-        else:
-            add_number_to_database(number)
-            send_sms("You just subscribed.", number)
-
-    if message.startswith("stop"):
-        if number in nums:
-            delete_number_from_database(number)
-            send_sms("You have been removed.", number)
-        else:
-            send_sms("You are not registered.", number)
+    if message.startswith("yo"):
+        add_number_player_relation("4747504585", "galbijjim")
+        send_sms("Done", number)
 
 
 def main():
